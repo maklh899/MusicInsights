@@ -58,6 +58,11 @@ Song <- tibble(pseudonym=survey$pseudonym,favorite_song=survey$favorite_song, fa
 
 View(Person)
 View(Song)
-
 ```
+
+
+```{r}
+survey$time_submitted <- as.POSIXlt(parse_datetime(as.character(survey$time_submitted), format = "%m/%d/%y %H:%M"))
+```
+
 commit
