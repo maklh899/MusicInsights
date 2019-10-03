@@ -1,6 +1,6 @@
 ---
 title: "Music Insights"
-author: "MAkena Haroldson"
+author: "Makena Haroldson"
 output: html_notebook
 ---
 
@@ -25,7 +25,6 @@ View(survey)
 Cleaning Data
 rename columns names to a consistant format
 ```{r}
-view(survey)
 colnames(survey)[colnames(survey)=="Timestamp"] <- "time_submitted"
 colnames(survey)[colnames(survey)=="First, we are going to create a pseudonym for you to keep this survey anonymous (more or less). Which pseudonym generator would you prefer?"] <- "pseudonym_generator"
 colnames(survey)[colnames(survey)=="Sex"] <- "sex"
@@ -60,9 +59,26 @@ View(Person)
 View(Song)
 ```
 
-
+Make times into POSIXlt
 ```{r}
 survey$time_submitted <- as.POSIXlt(parse_datetime(as.character(survey$time_submitted), format = "%m/%d/%y %H:%M"))
+Person$time_submitted <- as.POSIXlt(parse_datetime(as.character(Person$time_submitted), format = "%m/%d/%y %H:%M"))
+preferences$time_submitted <- as.POSIXlt(parse_datetime(as.character(preferences$Timestamp), format = "%m/%d/%y %H:%M"))
+
+levels(Person$academic_level)
+Person$academic_level<- as.factor(Person$academic_level)
+levels(Person$academic_major)
+Person$academic_major<- as.factor(Person$academic_major)
+
+levels(Person$academic_major)[levels(Person$academic_major)=="Computer information system"] <- "Computer Information Science"
 ```
 
-commit
+```{r}
+
+preferences <- preferences %>% gather(song_rated, rating, 3:45)
+colnames(preferences)[colnames(preferences)=="What was your pseudonym?"] <- "pseudonym"
+
+Ratings <- tibble(pseudonym=preferences$pseudonym, artist_song=preferences$song_rated,Rating=preferences$rating)
+view(Ratings)
+
+```
