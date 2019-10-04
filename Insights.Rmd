@@ -1,15 +1,19 @@
 ---
 title: "Music Insights"
 author: "Makena Haroldson"
-output: html_notebook
+date: "October 3, 2019"
+output: 
+  word_document: default
+  pdf_document: default
+  html_document: default
 ---
 
 First, we need tidyverse to handle data importing and wrangling...
+install.packages("tidyverse")
 
 ```{r}
-install.packages("tidyverse")
-library("tidyverse")
 
+library("tidyverse")
 survey <- read_csv("https://raw.githubusercontent.com/introdsci/MusicSurvey/master/music-survey.csv")
 preferences <- read_csv("https://raw.githubusercontent.com/introdsci/MusicSurvey/master/preferences-survey.csv")
 
@@ -61,9 +65,7 @@ View(Song)
 
 Make times into POSIXlt
 ```{r}
-survey$time_submitted <- as.POSIXlt(parse_datetime(as.character(survey$time_submitted), format = "%m/%d/%y %H:%M"))
-Person$time_submitted <- as.POSIXlt(parse_datetime(as.character(Person$time_submitted), format = "%m/%d/%y %H:%M"))
-preferences$time_submitted <- as.POSIXlt(parse_datetime(as.character(preferences$Timestamp), format = "%m/%d/%y %H:%M"))
+survey$time_submitted <-  as.POSIXlt(parse_datetime(as.character(survey$time_submitted), format = "%m/%d/%y %H:%M"))
 
 levels(Person$academic_level)
 Person$academic_level<- as.factor(Person$academic_level)
