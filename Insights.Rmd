@@ -3,18 +3,18 @@ title: "Music Insights"
 author: "Makena Haroldson"
 date: "October 3, 2019"
 output: 
+  html_document: default
   word_document: default
   pdf_document: default
-  html_document: default
 ---
 
 First, we need tidyverse to handle data importing and wrangling...
 install.packages("tidyverse")
 
 ```{r}
-
 library("tidyverse")
-survey <- read_csv("https://raw.githubusercontent.com/introdsci/MusicSurvey/master/music-survey.csv")
+survey <- read_csv("https://raw.githubusercontent.com/introdsci/MusicSurvey/master/music-survey.csv" )
+
 preferences <- read_csv("https://raw.githubusercontent.com/introdsci/MusicSurvey/master/preferences-survey.csv")
 
 nrow(preferences) #46
@@ -46,41 +46,78 @@ View(survey)
 ```
 
 
-Create a Person and Song table
+Create a person and Song table
 tible: a dataframe
 ```{r}
 
 library("dplyr")
 library("tidyr")
 
+person <- tibble(time_submitted=survey$time_submitted, pseudonym =survey$pseudonym, pseudonym_generator=survey$pseudonym_generator, sex=survey$sex, year_born=survey$year_born, academic_level= survey$academic_level, academic_major=survey$academic_major )
 
-Person <- tibble(time_submitted=survey$time_submitted, pseudonym =survey$pseudonym, pseudonym_generator=survey$pseudonym_generator, sex=survey$sex, year_born=survey$year_born, academic_level= survey$academic_level, academic_major=survey$academic_major )
-
-Song <- tibble(pseudonym=survey$pseudonym,favorite_song=survey$favorite_song, favorite_song_artist=survey$favorite_song_artist, favorite_song_link=survey$favorite_song_link)
+song <- tibble(pseudonym=survey$pseudonym,favorite_song=survey$favorite_song, favorite_song_artist=survey$favorite_song_artist, favorite_song_link=survey$favorite_song_link)
 
 
-View(Person)
-View(Song)
+View(person)
+View(song)
 ```
 
 Make times into POSIXlt
 ```{r}
 survey$time_submitted <-  as.POSIXlt(parse_datetime(as.character(survey$time_submitted), format = "%m/%d/%y %H:%M"))
 
-levels(Person$academic_level)
-Person$academic_level<- as.factor(Person$academic_level)
-levels(Person$academic_major)
-Person$academic_major<- as.factor(Person$academic_major)
+levels(person$academic_level)
+person$academic_level<- as.factor(person$academic_level)
+levels(person$academic_major)
+person$academic_major<- as.factor(person$academic_major)
 
-levels(Person$academic_major)[levels(Person$academic_major)=="Computer information system"] <- "Computer Information Science"
+levels(person$academic_major)[levels(person$academic_major)=="Computer information system"] <- "Computer Information Science"
 ```
 
 ```{r}
 
 preferences <- preferences %>% gather(song_rated, rating, 3:45)
 colnames(preferences)[colnames(preferences)=="What was your pseudonym?"] <- "pseudonym"
-
-Ratings <- tibble(pseudonym=preferences$pseudonym, artist_song=preferences$song_rated,Rating=preferences$rating)
-view(Ratings)
+#preferences
+ratings <- tibble(time_rated=preferences$Timestamp, pseudonym=preferences$pseudonym, artist_song=preferences$song_rated,rating=preferences$rating)
+View(ratings)
 
 ```
+
+
+```{r}
+library("ggplot2")
+visual <- ggplot(data=survey, aes(survey$academic_level, survey$year_born)) + geom_col()
+visual
+
+ggplot(ratings, aes(x=rating)) + geom_histogram(binwidth = 1)
+
+
+ggplot(ratings, aes( x= mean(rating), y=pseudonym))+ geom_boxplot() + stat_boxplot(coef = 5)
+
+```
+# relational data
+
+Filter out duplicate sumbmissions, weeding out 
+```{r}
+earliest_time <- min(ratings$time_rated[ratings$pseudonym=="Angel Angel"])
+ratings <- ratings %>% filter(!(pseudonym=="Angel Angel" & time_rated!=earliest_time))
+earliest_time <- min(ratings$time_rated[ratings$pseudonym=="Mission Theory"])
+ratings <- ratings %>% filter(!(pseudonym=="Mission Theory" & time_rated!=earliest_time))
+```
+
+Now we join the tables to see how each person rated their own song
+```{r}
+#user_rating <- preferences %>%  separate(preferences, song_rated, into , sep = "[a-z]+\t")
+#View(preferences)
+
+#user_rating <- extract(preferences, preferences$song_rated, regex="[a-zA-Z]+\t+[a-zA-Z]", into = c("Song","Artist"))
+#user_rating
+
+#indiv_rates <-left_join(preferences, Song, by="pseudonym") 
+
+#join_rates<- str_subset(string, pattern) 
+#View(inner_rates)
+```
+
+

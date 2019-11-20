@@ -1,0 +1,63 @@
+---
+title: "Music Insights Modeling"
+author: "Makena Haroldson"
+date: "November 19, 2019"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+Uploading Data Cleaning
+```{r}
+include <- function(library_name){
+  if( !(library_name %in% installed.packages()) )
+    install.packages(library_name) 
+  library(library_name, character.only=TRUE)
+}
+
+suppressMessages(include("tidyverse"))
+suppressMessages(include("knitr"))
+suppressMessages(include("caret")) #predictive models
+suppressMessages(purl("Insights.Rmd", output = "part1.r"))
+suppressMessages(source("part1.r"))
+```
+
+We now can get the average of each persons rating and append it to the person table. Once we do so, we can make a predictions based on a person average rating.
+```{r}
+#gets the average of person rating
+aveRatings <- aggregate(rating ~ pseudonym, preferences, mean)
+person_extended <- full_join(aveRatings, person, by = "pseudonym")
+
+#p= 75% split
+#dependent variable is 'rating' and you want to see if 'academic_level, sex etc' have any influence on rating
+sample_selection <- person_extended$academic_level %>%
+            createDataPartition(p = 0.75, list = FALSE)
+
+train <-person_extended[sample_selection, ]
+test <-person_extended[-sample_selection,]
+
+#random seed to generate random number
+set.seed(54)
+
+#makes model
+train_model <- lm(data = person_extended, formula=  rating ~ academic_level + sex + academic_major + year_born, date = train)
+summary(train_model)
+
+#p-value: 0.239
+predictions <- train_model %>% predict(test)
+aveRatings
+
+
+#r^2 is the correlation, how strong the correlation is (root it, 1 being stronger correlation)
+R2 <- R2(predictions, test$rating)
+R2
+
+# the smaller the number is, the more accurate the value
+MAE <-MAE(predictions, test$rating)
+MAE
+```
+
+From our p-value (.239), we see that the a person's average rating shows no correlation to any other properties of a person. The p-value is greater than .05, the r^2 value low (better to be closer to 1), and the MAE value is high (better to have a smaller value).
+
+
